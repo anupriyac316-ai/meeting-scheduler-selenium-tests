@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<h2>All Meetings</h2>
+<a href="/book">+ Book New Meeting</a>
+<ul>
+  <li th:each="m : ${meetings}">
+    <span th:text="${m.title}"></span> |
+    <span th:text="${m.date}"></span> |
+    <span th:text="${m.startTime}"></span>
+    <a th:href="@{/cancel/{id}(id=${m.id})}">Cancel</a>
+  </li>
+</ul>
+</body>
+</html>

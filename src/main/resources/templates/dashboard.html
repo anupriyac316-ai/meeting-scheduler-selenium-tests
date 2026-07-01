@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — MeetSync</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #FCFBF4;
+      --surface: #FFFFFF;
+      --field: #FAF8EC;
+      --ink: #232117;
+      --ink-soft: #8C876E;
+      --ink-faint: #B8B39C;
+      --line: #ECE6C8;
+      --line-soft: #F2EDD8;
+      --accent: #E8B400;
+      --accent-dark: #C99600;
+      --accent-soft: #FFF4CC;
+      --teal: #19A381;
+      --teal-soft: #E3F7F1;
+      --danger: #DC5B4E;
+      --danger-soft: #FCEAE8;
+      --shadow-sm: 0 1px 2px rgba(35,33,23,0.04), 0 1px 3px rgba(35,33,23,0.03);
+      --shadow-md: 0 4px 16px rgba(35,33,23,0.06);
+      --shadow-glow: 0 8px 24px rgba(232,180,0,0.18);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 32px; background: var(--surface); border-bottom: 1px solid var(--line);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .logo { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 19px; display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--ink); }
+    .logo-mark {
+      width: 30px; height: 30px; border-radius: 9px;
+      background: linear-gradient(135deg, var(--accent), var(--teal));
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: var(--shadow-sm);
+    }
+    .nav-right { display: flex; align-items: center; gap: 14px; }
+    .icon-btn {
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--line); background: var(--surface); cursor: pointer;
+      color: var(--ink-soft); position: relative; transition: border-color 0.15s, color 0.15s;
+    }
+    .icon-btn:hover { border-color: var(--accent); color: var(--ink); }
+    .icon-btn .dot { position: absolute; top: 7px; right: 7px; width: 7px; height: 7px; border-radius: 50%; background: var(--danger); border: 1.5px solid var(--surface); }
+    .user-block { display: flex; align-items: center; gap: 10px; padding-left: 6px; border-left: 1px solid var(--line); }
+    .user-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 13px;
+    }
+    .user-name { font-size: 13px; font-weight: 600; }
+    .user-role { font-size: 11px; color: var(--ink-soft); }
+    .btn-logout {
+      font-size: 13px; font-weight: 600; color: var(--ink-soft); text-decoration: none;
+      border: 1px solid var(--line); padding: 8px 14px; border-radius: 10px; background: var(--surface);
+      cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .btn-logout:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+
+    .layout { display: flex; min-height: calc(100vh - 65px); }
+
+    .sidebar {
+      width: 252px; flex-shrink: 0; background: var(--surface);
+      border-right: 1px solid var(--line); padding: 22px 14px; display: flex; flex-direction: column;
+    }
+    .sidebar-label {
+      font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--ink-faint); padding: 0 12px; margin-bottom: 10px;
+    }
+    .nav-group { margin-bottom: 4px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      width: 100%; text-align: left; background: none; border: none;
+      padding: 11px 12px; border-radius: 11px; cursor: pointer;
+      font-family: 'Inter', sans-serif; font-size: 13.5px; font-weight: 600; color: var(--ink-soft);
+      transition: background 0.15s, color 0.15s;
+      margin-bottom: 3px; position: relative;
+    }
+    .nav-item .icon-box {
+      width: 32px; height: 32px; border-radius: 9px; background: var(--field);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      color: var(--ink-soft); transition: background 0.15s, color 0.15s;
+    }
+    .nav-item:hover { background: var(--field); color: var(--ink); }
+    .nav-item.active { background: var(--accent-soft); color: var(--ink); }
+    .nav-item.active .icon-box { background: var(--accent); color: #fff; }
+    .nav-badge {
+      margin-left: auto; background: var(--danger); color: #fff; font-size: 10.5px; font-weight: 700;
+      min-width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center; justify-content: center; padding: 0 5px;
+    }
+    .sidebar-divider { height: 1px; background: var(--line-soft); margin: 14px 4px; }
+    .sidebar-foot { margin-top: auto; padding: 14px 12px; background: var(--field); border-radius: 14px; border: 1px solid var(--line-soft); }
+    .sidebar-foot-title { font-size: 12.5px; font-weight: 700; margin-bottom: 3px; }
+    .sidebar-foot-text { font-size: 11.5px; color: var(--ink-soft); line-height: 1.5; }
+
+    .main { flex: 1; padding: 32px 36px 80px; max-width: 920px; }
+
+    .page-eyebrow { font-size: 11.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); margin-bottom: 7px; }
+    .page-title { font-family: 'Space Grotesk', sans-serif; font-size: 27px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; }
+    .page-sub { font-size: 13.5px; color: var(--ink-soft); margin-bottom: 26px; }
+
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 26px; box-shadow: var(--shadow-sm); }
+    .panel-title { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .panel-title .count-chip { font-size: 11.5px; font-weight: 700; color: var(--ink-soft); background: var(--field); padding: 3px 10px; border-radius: 99px; border: 1px solid var(--line-soft); }
+    .panel + .panel { margin-top: 20px; }
+
+    .meeting-card {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      background: var(--field); border: 1px solid var(--line-soft); border-radius: 14px;
+      padding: 15px 17px; margin-bottom: 11px; transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .meeting-card:hover { border-color: var(--line); box-shadow: var(--shadow-sm); }
+    .meeting-card.cancelled { opacity: 0.85; align-items: flex-start; }
+    .meeting-left { display: flex; align-items: center; gap: 13px; }
+    .meeting-date-block {
+      width: 46px; height: 46px; border-radius: 11px; background: var(--surface); border: 1px solid var(--line);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .meeting-date-block .month { font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--teal); }
+    .meeting-date-block .day { font-size: 15px; font-weight: 700; line-height: 1; }
+    .meeting-info { display: flex; flex-direction: column; gap: 3px; }
+    .meeting-title { font-weight: 600; font-size: 14.5px; }
+    .meeting-meta { font-size: 12.5px; color: var(--ink-soft); display: flex; gap: 12px; flex-wrap: wrap; }
+    .meeting-meta span { display: inline-flex; align-items: center; gap: 4px; }
+    .meeting-reason { font-size: 12px; color: var(--danger); margin-top: 4px; font-style: italic; }
+
+    .meeting-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    .btn-cancel {
+      background: var(--danger-soft); color: var(--danger); border: 1px solid rgba(220,91,78,0.2);
+      font-size: 12.5px; font-weight: 600; padding: 8px 14px; border-radius: 10px;
+      cursor: pointer; transition: background 0.15s; white-space: nowrap;
+    }
+    .btn-cancel:hover { background: rgba(220,91,78,0.16); }
+
+    .btn-edit {
+      background: var(--accent-soft); color: var(--accent-dark); border: 1px solid rgba(232,180,0,0.25);
+      font-size: 12.5px; font-weight: 600; padding: 8px 14px; border-radius: 10px;
+      cursor: pointer; transition: background 0.15s; white-space: nowrap;
+    }
+    .btn-edit:hover { background: rgba(232,180,0,0.22); }
+
+    .badge-cancelled {
+      font-size: 11px; font-weight: 700; color: var(--danger); background: var(--danger-soft);
+      padding: 4px 10px; border-radius: 99px; white-space: nowrap; flex-shrink: 0;
+    }
+
+    .empty-state { text-align: center; padding: 44px 20px; color: var(--ink-soft); }
+    .empty-state .icon-wrap {
+      width: 56px; height: 56px; border-radius: 16px; background: var(--field);
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; color: var(--ink-faint);
+    }
+    .empty-state p { font-size: 13.5px; }
+    .empty-state.small { padding: 26px 16px; }
+
+    .field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
+    label { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); }
+    input, textarea {
+      background: var(--field); border: 1px solid var(--line); border-radius: 10px; color: var(--ink);
+      font-family: 'Inter', sans-serif; font-size: 14px; padding: 11px 13px; outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease; width: 100%;
+    }
+    input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,180,0,0.15); }
+    textarea { resize: vertical; min-height: 80px; font-family: 'Inter', sans-serif; }
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      color: #fff; border: none; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14.5px;
+      padding: 13px 20px; border-radius: 12px; cursor: pointer; margin-top: 4px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: var(--shadow-glow);
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(232,180,0,0.26); }
+    .btn-primary.full { width: 100%; }
+    .btn-secondary {
+      background: var(--surface); color: var(--ink-soft); border: 1px solid var(--line);
+      font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13.5px;
+      padding: 11px 18px; border-radius: 12px; cursor: pointer; transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-secondary:hover { border-color: var(--ink-faint); color: var(--ink); }
+    .btn-danger {
+      background: var(--danger); color: #fff; border: none;
+      font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13.5px;
+      padding: 11px 18px; border-radius: 12px; cursor: pointer; transition: background 0.15s;
+    }
+    .btn-danger:hover { background: #C24A3E; }
+    .btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .alert { padding: 12px 14px; border-radius: 11px; font-size: 13.5px; font-weight: 500; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+    .alert-error { background: var(--danger-soft); border: 1px solid rgba(220,91,78,0.2); color: var(--danger); }
+    .alert-success { background: var(--teal-soft); border: 1px solid rgba(25,163,129,0.2); color: var(--teal); }
+    .alert-info { background: var(--field); border: 1px solid var(--line); color: var(--ink-soft); }
+
+    /* Notifications */
+    .notif-item {
+      display: flex; gap: 13px; padding: 14px 4px; border-bottom: 1px solid var(--line-soft);
+    }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-icon {
+      width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .notif-icon.yellow { background: var(--accent-soft); color: var(--accent-dark); }
+    .notif-icon.teal { background: var(--teal-soft); color: var(--teal); }
+    .notif-icon.red { background: var(--danger-soft); color: var(--danger); }
+    .notif-body { flex: 1; }
+    .notif-title { font-size: 13.5px; font-weight: 600; margin-bottom: 2px; }
+    .notif-desc { font-size: 12.5px; color: var(--ink-soft); line-height: 1.5; }
+    .notif-time { font-size: 11px; color: var(--ink-faint); margin-top: 4px; }
+
+    /* Analysis */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 20px; }
+    .stat-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; box-shadow: var(--shadow-sm); }
+    .stat-icon { width: 34px; height: 34px; border-radius: 9px; background: var(--field); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--ink-soft); }
+    .stat-num { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; color: var(--ink); }
+    .stat-label { font-size: 12px; color: var(--ink-soft); margin-top: 3px; }
+
+    .section { display: none; animation: fadeIn 0.25s ease; }
+    .section.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Modals */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(35,33,23,0.45);
+      align-items: center; justify-content: center; z-index: 100; padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: var(--surface); border-radius: 18px; padding: 24px; width: 100%; max-width: 380px;
+      box-shadow: var(--shadow-md); border: 1px solid var(--line);
+    }
+    .modal-title { font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+    .modal-sub { font-size: 13px; color: var(--ink-soft); margin-bottom: 16px; line-height: 1.5; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 6px; }
+    .modal-actions button { flex: 1; }
+
+    @media (max-width: 860px) {
+      .layout { flex-direction: column; }
+      .sidebar { width: 100%; flex-direction: row; overflow-x: auto; padding: 10px; gap: 6px; border-right: none; border-bottom: 1px solid var(--line); }
+      .sidebar-label, .sidebar-divider, .sidebar-foot { display: none; }
+      .nav-item { white-space: nowrap; margin-bottom: 0; }
+      .main { padding: 24px 18px 60px; }
+      nav { padding: 12px 18px; flex-wrap: wrap; gap: 10px; }
+      .user-name, .user-role { display: none; }
+    }
+    @media (max-width: 480px) {
+      .row-2 { grid-template-columns: 1fr; }
+      .meeting-card { flex-direction: column; align-items: flex-start; }
+      .meeting-actions { width: 100%; }
+      .meeting-actions button { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a class="logo" href="/dashboard">
+      <div class="logo-mark">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
+      </div>
+      MeetSync
+    </a>
+    <div class="nav-right">
+      <button class="icon-btn" type="button" onclick="showSection('notifications', document.querySelector('[data-target=notifications]'))" title="Notifications">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="dot" th:if="${notifications != null and !#lists.isEmpty(notifications)}"></span>
+      </button>
+      <div class="user-block">
+        <div class="user-avatar" th:text="${user != null ? #strings.substring(user.name,0,1) : 'U'}">U</div>
+        <div>
+          <div class="user-name" th:text="${user != null ? user.name : 'User'}">User</div>
+          <div class="user-role">Member</div>
+        </div>
+      </div>
+      <form method="post" action="/logout" style="display:inline;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button type="submit" class="btn-logout">Sign out</button>
+      </form>
+      <button type="button" class="btn-logout" style="color: var(--danger); border-color: rgba(220,91,78,0.3);"
+              onclick="openDeleteAccountModal()">
+        Delete account
+      </button>
+    </div>
+  </nav>
+
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-label">Menu</div>
+      <div class="nav-group">
+        <button class="nav-item active" data-target="schedule" onclick="showSection('schedule', this)">
+          <span class="icon-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M12 14v4M10 16h4"/></svg>
+          </span>
+          Schedule meeting
+        </button>
+        <button class="nav-item" data-target="cancel" onclick="showSection('cancel', this)">
+          <span class="icon-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9.5 14.5l5 5M14.5 14.5l-5 5"/></svg>
+          </span>
+          Cancel meeting
+        </button>
+        <button class="nav-item" data-target="notifications" onclick="showSection('notifications', this)">
+          <span class="icon-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </span>
+          Notifications
+          <span class="nav-badge" th:if="${notifications != null and !#lists.isEmpty(notifications)}" th:text="${#lists.size(notifications)}">0</span>
+        </button>
+        <button class="nav-item" data-target="analysis" onclick="showSection('analysis', this)">
+          <span class="icon-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg>
+          </span>
+          Analysis
+        </button>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-foot">
+        <div class="sidebar-foot-title">Need help?</div>
+        <div class="sidebar-foot-text">MeetSync detects conflicts automatically so you never double-book.</div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+
+      <!-- SCHEDULE MEETING -->
+      <section id="schedule" class="section active">
+        <div class="page-eyebrow">Dashboard</div>
+        <div class="page-title">Schedule a meeting</div>
+        <div class="page-sub">Pick a time — conflicts are checked automatically.</div>
+
+        <div class="panel">
+          <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+          <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
+
+          <form method="post" action="/meetings/add">
+            <div class="field">
+              <label for="title">Title</label>
+              <input type="text" id="title" name="title" placeholder="Team sync" required/>
+            </div>
+            <div class="row-2">
+              <div class="field">
+                <label for="date">Date</label>
+                <input type="date" id="date" name="date" required/>
+              </div>
+              <div class="field">
+                <label for="startTime">Time</label>
+                <input type="time" id="startTime" name="startTime" required/>
+              </div>
+            </div>
+            <div class="field">
+              <label for="durationMinutes">Duration (minutes)</label>
+              <input type="number" id="durationMinutes" name="durationMinutes" placeholder="30" min="5" required/>
+            </div>
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="btn-primary full">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              Schedule meeting
+            </button>
+          </form>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">
+            All scheduled meetings
+            <span class="count-chip" th:text="${meetings != null ? #lists.size(meetings) : 0} + ' total'">0 total</span>
+          </div>
+
+          <div th:if="${meetings == null or #lists.isEmpty(meetings)}" class="empty-state small">
+            <p>No meetings scheduled yet — book your first one above.</p>
+          </div>
+
+          <div th:each="meeting : ${meetings}" class="meeting-card">
+            <div class="meeting-left">
+              <div class="meeting-date-block">
+                <div class="month" th:text="${#temporals.format(meeting.date,'MMM')}">JUL</div>
+                <div class="day" th:text="${#temporals.format(meeting.date,'dd')}">01</div>
+              </div>
+              <div class="meeting-info">
+                <div class="meeting-title" th:text="${meeting.title}">Meeting title</div>
+                <div class="meeting-meta">
+                  <span th:text="${meeting.startTime}">10:00</span>
+                  <span th:text="${meeting.durationMinutes} + ' min'">30 min</span>
+                </div>
+              </div>
+            </div>
+            <div class="meeting-actions">
+              <button type="button" class="btn-edit"
+                      th:data-id="${meeting.id}"
+                      th:data-title="${meeting.title}"
+                      th:data-date="${meeting.date}"
+                      th:data-time="${#temporals.format(meeting.startTime,'HH:mm')}"
+                      th:data-duration="${meeting.durationMinutes}"
+                      onclick="openEditModal(this.dataset.id, this.dataset.title, this.dataset.date, this.dataset.time, this.dataset.duration)">
+                Edit
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CANCEL MEETING -->
+      <section id="cancel" class="section">
+        <div class="page-eyebrow">Dashboard</div>
+        <div class="page-title">Cancel a meeting</div>
+        <div class="page-sub">Remove a meeting from your schedule — you'll be asked for a reason.</div>
+
+        <div class="panel">
+          <div class="panel-title">
+            Scheduled meetings
+            <span class="count-chip" th:text="${meetings != null ? #lists.size(meetings) : 0} + ' total'">0 total</span>
+          </div>
+
+          <div th:if="${meetings == null or #lists.isEmpty(meetings)}" class="empty-state small">
+            <p>No meetings scheduled yet.</p>
+          </div>
+
+          <div th:each="meeting : ${meetings}" class="meeting-card">
+            <div class="meeting-left">
+              <div class="meeting-date-block">
+                <div class="month" th:text="${#temporals.format(meeting.date,'MMM')}">JUL</div>
+                <div class="day" th:text="${#temporals.format(meeting.date,'dd')}">01</div>
+              </div>
+              <div class="meeting-info">
+                <div class="meeting-title" th:text="${meeting.title}">Meeting title</div>
+                <div class="meeting-meta">
+                  <span th:text="${meeting.startTime}">10:00</span>
+                  <span th:text="${meeting.durationMinutes} + ' min'">30 min</span>
+                </div>
+              </div>
+            </div>
+            <div class="meeting-actions">
+              <button type="button" class="btn-edit"
+                      th:data-id="${meeting.id}"
+                      th:data-title="${meeting.title}"
+                      th:data-date="${meeting.date}"
+                      th:data-time="${#temporals.format(meeting.startTime,'HH:mm')}"
+                      th:data-duration="${meeting.durationMinutes}"
+                      onclick="openEditModal(this.dataset.id, this.dataset.title, this.dataset.date, this.dataset.time, this.dataset.duration)">
+                Edit
+              </button>
+              <button type="button" class="btn-cancel"
+                      th:data-id="${meeting.id}"
+                      th:data-title="${meeting.title}"
+                      onclick="openCancelModal(this.dataset.id, this.dataset.title)">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">
+            Cancelled meetings
+            <span class="count-chip" th:text="${cancelledMeetings != null ? #lists.size(cancelledMeetings) : 0} + ' total'">0 total</span>
+          </div>
+
+          <div th:if="${cancelledMeetings == null or #lists.isEmpty(cancelledMeetings)}" class="empty-state small">
+            <p>No cancelled meetings.</p>
+          </div>
+
+          <div th:each="meeting : ${cancelledMeetings}" class="meeting-card cancelled">
+            <div class="meeting-left">
+              <div class="meeting-date-block">
+                <div class="month" th:text="${#temporals.format(meeting.date,'MMM')}">JUL</div>
+                <div class="day" th:text="${#temporals.format(meeting.date,'dd')}">01</div>
+              </div>
+              <div class="meeting-info">
+                <div class="meeting-title" th:text="${meeting.title}">Meeting title</div>
+                <div class="meeting-meta">
+                  <span th:text="${meeting.startTime}">10:00</span>
+                  <span th:text="${meeting.durationMinutes} + ' min'">30 min</span>
+                </div>
+                <div class="meeting-reason" th:text="'Reason: ' + ${meeting.cancelReason}">Reason: —</div>
+              </div>
+            </div>
+            <span class="badge-cancelled">Cancelled</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- NOTIFICATIONS -->
+      <section id="notifications" class="section">
+        <div class="page-eyebrow">Dashboard</div>
+        <div class="page-title">Notifications</div>
+        <div class="page-sub">Stay updated on changes to your schedule.</div>
+
+        <div class="panel">
+          <div class="panel-title">Recent activity</div>
+
+          <div th:if="${notifications == null or #lists.isEmpty(notifications)}" class="empty-state small">
+            <p>No activity yet — scheduling or cancelling a meeting will show up here.</p>
+          </div>
+
+          <div th:each="notif : ${notifications}" class="notif-item">
+            <div th:class="'notif-icon ' + ${notif.iconColor}">
+              <svg th:if="${notif.iconColor == 'teal'}" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+              <svg th:if="${notif.iconColor == 'red'}" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+              <svg th:if="${notif.iconColor == 'yellow'}" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            </div>
+            <div class="notif-body">
+              <div class="notif-title" th:text="${notif.title}">Title</div>
+              <div class="notif-desc" th:text="${notif.description}">Description</div>
+              <div class="notif-time" th:text="${notif.timeAgo}">time</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ANALYSIS -->
+      <section id="analysis" class="section">
+        <div class="page-eyebrow">Dashboard</div>
+        <div class="page-title">Analysis</div>
+        <div class="page-sub">A quick overview of your meeting activity.</div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            </div>
+            <div class="stat-num" th:text="${stats != null ? stats.totalScheduled : 0}">0</div>
+            <div class="stat-label">Scheduled meetings</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+            </div>
+            <div class="stat-num" th:text="${stats != null ? stats.totalCancelled : 0}">0</div>
+            <div class="stat-label">Cancelled meetings</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg>
+            </div>
+            <div class="stat-num" th:text="${stats != null ? stats.thisWeekCount : 0}">0</div>
+            <div class="stat-label">This week</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <div class="stat-num" th:text="${stats != null ? stats.avgDurationMinutes : 0} + ' min'">0 min</div>
+            <div class="stat-label">Avg. duration</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Insights</div>
+          <div class="empty-state" style="padding: 20px 0;" th:if="${stats == null or (stats.totalScheduled == 0 and stats.totalCancelled == 0)}">
+            <p>Schedule a few meetings to see insights here.</p>
+          </div>
+          <div th:if="${stats != null and (stats.totalScheduled > 0 or stats.totalCancelled > 0)}">
+            <p style="font-size: 13.5px; color: var(--ink-soft); line-height: 1.6;">
+              You currently have <strong th:text="${stats.totalScheduled}">0</strong> upcoming meeting(s) and
+              <strong th:text="${stats.totalCancelled}">0</strong> cancelled meeting(s), with an average duration of
+              <strong th:text="${stats.avgDurationMinutes}">0</strong> minutes per scheduled meeting.
+            </p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- CANCEL REASON MODAL -->
+  <div class="modal-overlay" id="cancelModalOverlay">
+    <div class="modal-box">
+      <div class="modal-title">Cancel meeting?</div>
+      <div class="modal-sub" id="cancelModalSub">This will cancel the meeting.</div>
+      <form id="cancelForm" method="post" action="/meetings/cancel/1">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <div class="field">
+          <label for="reason">Reason for cancellation</label>
+          <textarea id="reason" name="reason" placeholder="e.g. Rescheduling to next week, no longer needed..." required></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="closeCancelModal()">Go back</button>
+          <button type="submit" class="btn-danger">Confirm cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- EDIT MEETING MODAL -->
+  <div class="modal-overlay" id="editModalOverlay">
+    <div class="modal-box">
+      <div class="modal-title">Edit meeting</div>
+      <div class="modal-sub" id="editModalSub">Update the details below.</div>
+      <form id="editForm" method="post" action="/meetings/edit/1">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <div class="field">
+          <label for="editTitle">Title</label>
+          <input type="text" id="editTitle" name="title" required/>
+        </div>
+        <div class="row-2">
+          <div class="field">
+            <label for="editDate">Date</label>
+            <input type="date" id="editDate" name="date" required/>
+          </div>
+          <div class="field">
+            <label for="editTime">Time</label>
+            <input type="time" id="editTime" name="startTime" required/>
+          </div>
+        </div>
+        <div class="field">
+          <label for="editDuration">Duration (minutes)</label>
+          <input type="number" id="editDuration" name="durationMinutes" min="5" required/>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="closeEditModal()">Go back</button>
+          <button type="submit" class="btn-primary">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- DELETE ACCOUNT MODAL -->
+  <div class="modal-overlay" id="deleteAccountModalOverlay">
+    <div class="modal-box">
+      <div class="modal-title">Delete your account?</div>
+      <div class="modal-sub">
+        This permanently deletes your account and all your meetings. This cannot be undone.
+        Type <strong>DELETE</strong> to confirm.
+      </div>
+      <form id="deleteAccountForm" method="post" action="/account/delete">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <div class="field">
+          <label for="deleteConfirmText">Confirmation</label>
+          <input type="text" id="deleteConfirmText" placeholder="Type DELETE" required
+                 oninput="document.getElementById('confirmDeleteBtn').disabled = (this.value !== 'DELETE')"/>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="closeDeleteAccountModal()">Go back</button>
+          <button type="submit" class="btn-danger" id="confirmDeleteBtn" disabled>Delete permanently</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function showSection(id, btn) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      if (btn) btn.classList.add('active');
+    }
+
+    function openCancelModal(meetingId, meetingTitle) {
+      document.getElementById('cancelModalSub').textContent = 'Cancelling "' + meetingTitle + '". Please tell us why.';
+      document.getElementById('cancelForm').action = '/meetings/cancel/' + meetingId;
+      document.getElementById('reason').value = '';
+      document.getElementById('cancelModalOverlay').classList.add('active');
+    }
+
+    function closeCancelModal() {
+      document.getElementById('cancelModalOverlay').classList.remove('active');
+    }
+
+    function openEditModal(meetingId, title, date, time, duration) {
+      document.getElementById('editModalSub').textContent = 'Editing "' + title + '".';
+      document.getElementById('editForm').action = '/meetings/edit/' + meetingId;
+      document.getElementById('editTitle').value = title;
+      document.getElementById('editDate').value = date;
+      document.getElementById('editTime').value = time;
+      document.getElementById('editDuration').value = duration;
+      document.getElementById('editModalOverlay').classList.add('active');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModalOverlay').classList.remove('active');
+    }
+
+    function openDeleteAccountModal() {
+      document.getElementById('deleteConfirmText').value = '';
+      document.getElementById('confirmDeleteBtn').disabled = true;
+      document.getElementById('deleteAccountModalOverlay').classList.add('active');
+    }
+
+    function closeDeleteAccountModal() {
+      document.getElementById('deleteAccountModalOverlay').classList.remove('active');
+    }
+  </script>
+
+</body>
+</html>

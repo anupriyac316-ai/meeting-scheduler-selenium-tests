@@ -1,0 +1,539 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Book a Meeting</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0F0E13;
+      --surface: #1A1822;
+      --surface-hover: #211F2C;
+      --field: #211F2C;
+      --ink: #F5F3F7;
+      --ink-soft: #97939F;
+      --line: #2C2937;
+      --accent: #7C6CFF;
+      --accent-2: #3FE0C5;
+      --danger: #FF6B6B;
+      --danger-soft: rgba(255,107,107,0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      background-image: radial-gradient(circle at 15% 0%, rgba(124,108,255,0.16), transparent 45%),
+                         radial-gradient(circle at 100% 30%, rgba(63,224,197,0.10), transparent 40%);
+      color: var(--ink);
+      font-family: 'Inter', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 72px 24px 96px;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent-2);
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 32px;
+      letter-spacing: -0.015em;
+      margin: 0 0 8px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--ink-soft);
+      margin-bottom: 32px;
+    }
+
+    .error-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: var(--danger-soft);
+      border: 1px solid rgba(255,107,107,0.35);
+      color: var(--danger);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin-bottom: 24px;
+    }
+
+    .error-banner svg {
+      width: 16px;
+      height: 16px;
+      flex: none;
+      margin-top: 1px;
+    }
+
+    form {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .field-row {
+      display: flex;
+      gap: 14px;
+    }
+
+    .field-row .field { flex: 1; min-width: 0; }
+
+    label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-soft);
+    }
+
+    input {
+      width: 100%;
+      background: var(--field);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      color: var(--ink);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      padding: 11px 13px;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      color-scheme: dark;
+    }
+
+    input::placeholder { color: #5E5A68; }
+
+    input:hover { border-color: #3A3648; }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(124,108,255,0.18);
+    }
+
+    /* Pickable fields: type directly, or click anywhere on the field to open the native picker */
+    .pickable {
+      position: relative;
+    }
+
+    .pickable input {
+      padding-right: 42px;
+      cursor: pointer;
+    }
+
+    /* Make the native indicator invisible but stretch it over the whole input,
+       so the browser's own click target still works everywhere (fixes "time not working") */
+    .pickable input::-webkit-calendar-picker-indicator {
+      background: none;
+      color: transparent;
+      opacity: 0;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    /* Our icon is purely decorative now — sits on top, doesn't intercept clicks,
+       so there is only ONE visible icon and no duplicate */
+    .picker-icon {
+      position: absolute;
+      right: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      color: var(--ink-soft);
+      pointer-events: none;
+      transition: color 0.15s ease;
+    }
+
+    .pickable:hover .picker-icon,
+    .pickable input:focus ~ .picker-icon {
+      color: var(--accent-2);
+    }
+
+    /* Scroll-wheel time picker */
+    .time-popup {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      z-index: 20;
+      background: var(--surface-hover);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+      padding: 14px 12px 14px;
+      display: none;
+      width: 220px;
+    }
+
+    .time-popup.open { display: block; }
+
+    .time-popup-wheels {
+      position: relative;
+      display: flex;
+      gap: 4px;
+      height: 160px;
+    }
+
+    /* Center selection band */
+    .time-popup-wheels::before {
+      content: "";
+      position: absolute;
+      left: 0; right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 36px;
+      background: rgba(124,108,255,0.14);
+      border-top: 1px solid rgba(124,108,255,0.4);
+      border-bottom: 1px solid rgba(124,108,255,0.4);
+      pointer-events: none;
+      border-radius: 8px;
+    }
+
+    .wheel-col {
+      flex: 1;
+      height: 100%;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none;
+      position: relative;
+    }
+
+    .wheel-col::-webkit-scrollbar { display: none; }
+
+    .wheel-col-pad {
+      height: 62px;
+    }
+
+    .wheel-item {
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      scroll-snap-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink-soft);
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.1s ease;
+    }
+
+    .wheel-item.selected {
+      color: var(--ink);
+      font-size: 17px;
+    }
+
+    .time-popup-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .time-popup-actions button {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .time-cancel-btn {
+      background: transparent;
+      color: var(--ink-soft);
+    }
+
+    .time-cancel-btn:hover { color: var(--ink); }
+
+    .time-done-btn {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .time-done-btn:hover { background: #6A59F0; }
+
+    .submit-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--accent), #5B4BDB);
+      color: #fff;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 15px;
+      padding: 13px 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 8px 20px rgba(124,108,255,0.28);
+    }
+
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(124,108,255,0.4); }
+    .submit-btn:active { transform: translateY(0); }
+    .submit-btn:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+
+    .submit-btn svg { width: 16px; height: 16px; }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--ink-soft);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      margin-top: 20px;
+      transition: color 0.15s ease;
+    }
+
+    .back-link:hover { color: var(--ink); }
+    .back-link svg { width: 14px; height: 14px; }
+
+    @media (max-width: 480px) {
+      .page { padding: 48px 16px 72px; }
+      h2 { font-size: 26px; }
+      form { padding: 22px; }
+      .field-row { flex-direction: column; gap: 18px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="eyebrow">Schedule</div>
+    <h2>Book a Meeting</h2>
+    <div class="subtitle">Fill in the details below to reserve a time slot.</div>
+
+    <div class="error-banner" th:if="${error}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+      <span th:text="${error}">Something went wrong.</span>
+    </div>
+
+    <form method="post" action="/book">
+      <div class="field">
+        <label for="title">Title</label>
+        <input type="text" id="title" name="title" placeholder="e.g. Quarterly Sync" required/>
+      </div>
+
+      <div class="field">
+        <label for="date">Date</label>
+        <div class="pickable">
+          <input type="date" id="date" name="date" required/>
+          <svg class="picker-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="startTimeDisplay">Start time</label>
+          <div class="pickable">
+            <input type="text" id="startTimeDisplay" placeholder="--:-- --" readonly autocomplete="off"/>
+            <input type="hidden" id="startTime" name="startTime"/>
+            <svg class="picker-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+
+            <div class="time-popup" id="timePopup">
+              <div class="time-popup-wheels">
+                <div class="wheel-col" id="hourWheel">
+                  <div class="wheel-col-pad"></div>
+                </div>
+                <div class="wheel-col" id="minuteWheel">
+                  <div class="wheel-col-pad"></div>
+                </div>
+                <div class="wheel-col" id="periodWheel">
+                  <div class="wheel-col-pad"></div>
+                </div>
+              </div>
+              <div class="time-popup-actions">
+                <button type="button" class="time-cancel-btn" id="timeCancelBtn">Cancel</button>
+                <button type="button" class="time-done-btn" id="timeDoneBtn">Done</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="durationMinutes">Duration (mins)</label>
+          <input type="number" id="durationMinutes" name="durationMinutes" placeholder="30" min="1" required/>
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        Book meeting
+      </button>
+    </form>
+
+    <a class="back-link" href="/">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Back to all meetings
+    </a>
+  </div>
+
+  <script>
+    (function () {
+      var ITEM_HEIGHT = 36;
+      var hourWheel = document.getElementById('hourWheel');
+      var minuteWheel = document.getElementById('minuteWheel');
+      var periodWheel = document.getElementById('periodWheel');
+      var popup = document.getElementById('timePopup');
+      var display = document.getElementById('startTimeDisplay');
+      var hidden = document.getElementById('startTime');
+
+      function buildWheel(col, values) {
+        values.forEach(function (v) {
+          var item = document.createElement('div');
+          item.className = 'wheel-item';
+          item.textContent = v;
+          item.dataset.value = v;
+          col.appendChild(item);
+        });
+        var pad = document.createElement('div');
+        pad.className = 'wheel-col-pad';
+        col.appendChild(pad);
+      }
+
+      buildWheel(hourWheel, ['01','02','03','04','05','06','07','08','09','10','11','12']);
+      buildWheel(minuteWheel, ['00','05','10','15','20','25','30','35','40','45','50','55']);
+      buildWheel(periodWheel, ['AM','PM']);
+
+      function itemsOf(col) {
+        return Array.prototype.slice.call(col.querySelectorAll('.wheel-item'));
+      }
+
+      function selectedIndex(col) {
+        return Math.round(col.scrollTop / ITEM_HEIGHT);
+      }
+
+      function scrollToIndex(col, index, smooth) {
+        col.scrollTo({ top: index * ITEM_HEIGHT, behavior: smooth ? 'smooth' : 'auto' });
+      }
+
+      function highlight(col) {
+        var idx = selectedIndex(col);
+        itemsOf(col).forEach(function (el, i) {
+          el.classList.toggle('selected', i === idx);
+        });
+      }
+
+      [hourWheel, minuteWheel, periodWheel].forEach(function (col) {
+        col.addEventListener('scroll', function () {
+          highlight(col);
+        });
+        itemsOf(col).forEach(function (el, i) {
+          el.addEventListener('click', function () {
+            scrollToIndex(col, i, true);
+          });
+        });
+      });
+
+      function setWheelsFromTime(hh24, mm) {
+        var hh24n = parseInt(hh24, 10);
+        var period = hh24n >= 12 ? 'PM' : 'AM';
+        var hh12 = hh24n % 12;
+        if (hh12 === 0) hh12 = 12;
+        var hourStr = (hh12 < 10 ? '0' : '') + hh12;
+
+        var minuteVals = ['00','05','10','15','20','25','30','35','40','45','50','55'];
+        var nearestMinIdx = 0;
+        var minN = parseInt(mm, 10);
+        var best = 999;
+        minuteVals.forEach(function (v, i) {
+          var diff = Math.abs(parseInt(v, 10) - minN);
+          if (diff < best) { best = diff; nearestMinIdx = i; }
+        });
+
+        var hourIdx = ['01','02','03','04','05','06','07','08','09','10','11','12'].indexOf(hourStr);
+        var periodIdx = period === 'AM' ? 0 : 1;
+
+        scrollToIndex(hourWheel, hourIdx < 0 ? 0 : hourIdx, false);
+        scrollToIndex(minuteWheel, nearestMinIdx, false);
+        scrollToIndex(periodWheel, periodIdx, false);
+        setTimeout(function () {
+          highlight(hourWheel);
+          highlight(minuteWheel);
+          highlight(periodWheel);
+        }, 0);
+      }
+
+      function openPopup() {
+        if (hidden.value) {
+          var parts = hidden.value.split(':');
+          setWheelsFromTime(parts[0], parts[1]);
+        } else {
+          setWheelsFromTime('09', '00');
+        }
+        popup.classList.add('open');
+      }
+
+      function closePopup() {
+        popup.classList.remove('open');
+      }
+
+      function applySelection() {
+        var hourEl = itemsOf(hourWheel)[selectedIndex(hourWheel)];
+        var minEl = itemsOf(minuteWheel)[selectedIndex(minuteWheel)];
+        var perEl = itemsOf(periodWheel)[selectedIndex(periodWheel)];
+        if (!hourEl || !minEl || !perEl) return;
+
+        var hh12 = parseInt(hourEl.dataset.value, 10);
+        var mm = minEl.dataset.value;
+        var period = perEl.dataset.value;
+
+        var hh24 = hh12 % 12;
+        if (period === 'PM') hh24 += 12;
+        var hh24Str = (hh24 < 10 ? '0' : '') + hh24;
+
+        hidden.value = hh24Str + ':' + mm;
+        display.value = hourEl.dataset.value + ':' + mm + ' ' + period;
+        closePopup();
+      }
+
+      display.addEventListener('click', openPopup);
+      document.getElementById('timeDoneBtn').addEventListener('click', applySelection);
+      document.getElementById('timeCancelBtn').addEventListener('click', closePopup);
+
+      document.addEventListener('click', function (e) {
+        if (!popup.contains(e.target) && e.target !== display) {
+          closePopup();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<h2>Book a Meeting</h2>
+<p th:if="${error}" th:text="${error}" style="color:red"></p>
+<form method="post" action="/book">
+  Title: <input type="text" name="title"/><br/>
+  Date: <input type="date" name="date"/><br/>
+  Start Time: <input type="time" name="startTime"/><br/>
+  Duration (mins): <input type="number" name="durationMinutes"/><br/>
+  <button type="submit">Book</button>
+</form>
+</body>
+</html>

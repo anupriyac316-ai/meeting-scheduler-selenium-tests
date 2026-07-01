@@ -1,0 +1,30 @@
+# Compiled output
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Selenium driver binary — platform-specific, shouldn't be committed
+drivers/
+
+# Local H2 database files
+data/
+*.mv.db
+*.trace.db
+
+# IDE files
+.vscode/
+.idea/
+*.iws
+*.iml
+*.ipr
+.classpath
+.project
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

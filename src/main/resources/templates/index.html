@@ -1,0 +1,284 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Meetings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0F0E13;
+      --surface: #1A1822;
+      --surface-hover: #211F2C;
+      --ink: #F5F3F7;
+      --ink-soft: #97939F;
+      --line: #2C2937;
+      --accent: #7C6CFF;
+      --accent-2: #3FE0C5;
+      --danger: #FF6B6B;
+      --danger-soft: rgba(255,107,107,0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      background-image: radial-gradient(circle at 15% 0%, rgba(124,108,255,0.16), transparent 45%),
+                         radial-gradient(circle at 100% 30%, rgba(63,224,197,0.10), transparent 40%);
+      color: var(--ink);
+      font-family: 'Inter', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 72px 24px 96px;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 44px;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent-2);
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 36px;
+      letter-spacing: -0.015em;
+      margin: 0;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--ink-soft);
+      margin-top: 8px;
+    }
+
+    .book-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--accent), #5B4BDB);
+      color: #fff;
+      text-decoration: none;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 13px 20px;
+      border-radius: 12px;
+      white-space: nowrap;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 8px 20px rgba(124,108,255,0.28);
+    }
+
+    .book-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(124,108,255,0.4); }
+    .book-btn:active { transform: translateY(0); }
+    .book-btn:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+
+    .book-btn svg { width: 16px; height: 16px; }
+
+    ul.meeting-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    li.meeting-card {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 16px 18px;
+      overflow: hidden;
+      transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+    }
+
+    li.meeting-card::before {
+      content: "";
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, var(--accent), var(--accent-2));
+      opacity: 0;
+      transition: opacity 0.18s ease;
+    }
+
+    li.meeting-card:hover {
+      border-color: rgba(124,108,255,0.35);
+      background: var(--surface-hover);
+      transform: translateY(-2px);
+    }
+
+    li.meeting-card:hover::before { opacity: 1; }
+
+    /* Gradient calendar tear-off badge: the signature element */
+    .date-badge {
+      flex: 0 0 auto;
+      width: 58px;
+      text-align: center;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+    }
+
+    .date-badge .month {
+      display: block;
+      background: linear-gradient(135deg, var(--accent), #5B4BDB);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 5px 0;
+    }
+
+    .date-badge .day {
+      display: block;
+      background: #232030;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 21px;
+      padding: 7px 0 8px;
+      color: var(--ink);
+    }
+
+    .meeting-info {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .meeting-title {
+      display: block;
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .meeting-time {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--ink-soft);
+      margin-top: 4px;
+    }
+
+    .meeting-time svg {
+      width: 13px;
+      height: 13px;
+      flex: none;
+      opacity: 0.8;
+      color: var(--accent-2);
+    }
+
+    .cancel-link {
+      flex: 0 0 auto;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--danger);
+      text-decoration: none;
+      padding: 9px 14px;
+      border-radius: 9px;
+      background: var(--danger-soft);
+      border: 1px solid transparent;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .cancel-link:hover { background: rgba(255,107,107,0.2); border-color: rgba(255,107,107,0.4); }
+    .cancel-link:focus-visible { outline: 2px solid var(--danger); outline-offset: 2px; }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 72px 24px;
+      border: 1px dashed var(--line);
+      border-radius: 16px;
+      color: var(--ink-soft);
+      background: var(--surface);
+    }
+
+    .empty-state strong {
+      display: block;
+      color: var(--ink);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+
+    @media (max-width: 480px) {
+      .page { padding: 48px 16px 72px; }
+      .page-header { flex-direction: column; align-items: flex-start; }
+      h2 { font-size: 28px; }
+      .book-btn { width: 100%; justify-content: center; }
+      li.meeting-card { padding: 14px; gap: 14px; }
+      .date-badge { width: 50px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="page-header">
+      <div>
+        <div class="eyebrow">Schedule</div>
+        <h2>All Meetings</h2>
+        <div class="subtitle" th:text="${#lists.size(meetings)} + ' scheduled'">3 scheduled</div>
+      </div>
+      <a class="book-btn" href="/book">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Book new meeting
+      </a>
+    </div>
+
+    <ul class="meeting-list" th:if="${not #lists.isEmpty(meetings)}">
+      <li class="meeting-card" th:each="m : ${meetings}">
+        <div class="date-badge">
+          <span class="month" th:text="${#temporals.format(m.date, 'MMM')}">JUN</span>
+          <span class="day" th:text="${#temporals.format(m.date, 'd')}">24</span>
+        </div>
+        <div class="meeting-info">
+          <span class="meeting-title" th:text="${m.title}">Quarterly Sync</span>
+          <span class="meeting-time">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            <span th:text="${m.startTime}">10:00 AM</span>
+          </span>
+        </div>
+        <a class="cancel-link" th:href="@{/cancel/{id}(id=${m.id})}">Cancel</a>
+      </li>
+    </ul>
+
+    <div class="empty-state" th:if="${#lists.isEmpty(meetings)}">
+      <strong>No meetings yet</strong>
+      Book your first meeting to see it here.
+    </div>
+  </div>
+</body>
+</html>
